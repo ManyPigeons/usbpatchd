@@ -1,41 +1,42 @@
 # usbpatchd
 
-Patch the USB restriction on iOS, which blocks USB accessories from accessing the device.
+Patch the USB restriction on iOS 13, which blocks USB accessories from accessing the device.
 This can be used to provide SSH over USB (courtesy of dropbear) from a locked
 iOS device.
 
-This is a free alternative to "minaUSB patcher" that is not as buggy or malicious—there
-have been numerous reports of "minaUSB patcher" deleting and hiding files it has no
-right to.
+This is a free alternative to "minaUSB patcher" that is open-source and safer. Additionally, this works on checkm8-compatible devices that don't have a diagnostic menu to enter after boot unlike minaUSB.
 
 Most files in this repository have been aligned similar to the checkra1n bootstrap
 (/binpack); as such, the GPLv3 license applies as labelled in the [License section](#license)
-to only the files that I have written (and therefore claim copyright on).
+to only the files that nick-botticelli has written (and therefore claims copyright on).
 
-## Using
+## Installation
+Just clone the repository using git and cd into the directory:
+
+`git clone https://github.com/ManyPigeons/usbpatchd.git && cd usbpatchd`
+
+Update using:
+
+`cd usbpatchd && git pull`
+
+## Usage
 1. Boot into an SSH ramdisk capable of SSH and mounting the System volume
     * A ramdisk capable of such can be created through a free public tool
-    created by u/meowcat454 which can be found
-    [here](https://web.archive.org/web/20220812002341/https://www.reddit.com/r/setupapp/comments/w1irgx/how_to_boot_a_ssh_ramdisk_on_64bit_devices/)
-    (instructions may not be provided, but it should be simple enough).
-2. Run `install-usbpatchd.sh` from Terminal and follow any instructions.
+    created by Nathan (verygenericname) which can be found
+    [here](https://github.com/verygenericname/SSHRD_Script)
+
+2. Run `install-usbpatchd.sh` from a new Terminal and follow any instructions.
 
 ## Notes
-* You will have to run some manual commands. This shouldn't be too difficult.
-I will try to improve this to let snappy run automatically in the future.
-* This is a work in progress. Pull requests are encouraged.
-* As this is a work in progress, stability should not be expected. This
-script has been a little buggy, but the implementation itself is one
-I created for my own personal use and have found it to work perfectly
-to suit my needs (i.e. tested on A10 iOS 13 via macOS 12).
+* The implementation itself is one 
+nick-botticelli created for personal use but has found it to work 
+perfectly for their needs (i.e. tested on A10 iOS 13 via macOS 12).
 
 ## TODO
-* Fix renaming snapshots automatically
-* Check for gzip on SSH ramdisk
-* Provide ramdisk building capabilities (submodule?)
-* Determine whether .bootstrapped file should be added
+* Fix iOS <= 12 support
+* Rewrite installer in python
 
 ## License
 `install-usbpatchd.sh`, `root/Library/LaunchDaemons/com.apple.usbpatchd.plist`,
-and `root/usr/libexec/usbpatchd.sh` are my copyright and are licensed with the
+and `root/usr/libexec/usbpatchd.sh` are copyright of Nick Botticelli and are licensed with the
 [GNU General Public License Version 3](./LICENSE)
