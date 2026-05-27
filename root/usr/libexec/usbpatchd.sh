@@ -17,6 +17,7 @@
 # along with usbpatchd. If not, see <https://www.gnu.org/licenses/>.
 #
 # usbpatchd
+# usbpatchd.sh v0.1.0
 #
 
 LOG_FILE="/tmp/usbpatchd.log"
@@ -27,66 +28,28 @@ function log() {
 
 log "usbpatchd starting..."
 
-# Detect system volume disk identifier
-SYSVOL="$(mount | awk '$3 == "/" {print $1; exit}')"
-
-if [ -z "$SYSVOL" ]; then
-    log "Error: could not detect system volume disk identifier."
-    exit 1
-fi
-
-log "System volume detected at: $SYSVOL"
-
 # Allow writing to System
-if /sbin/mount -o rw,update -t apfs "$SYSVOL" /; then
-    log "System volume remounted read-write successfully."
-else
-    log "Error: failed to remount system volume read-write."
-    exit 1
-fi
-
-EFFECTIVE_PLIST="/private/var/mobile/Library/UserConfigurationProfiles/EffectiveUserSettings.plist"
-PUBLIC_PLIST="/private/var/mobile/Library/UserConfigurationProfiles/PublicInfo/PublicEffectiveUserSettings.plist"
+log "Remounting system volume read-write..."
+/sbin/mount -o rw,union,update -t apfs /dev/disk0s1s1 /
+log "mount exited with code $?"
 
 # Unlock files
-if /usr/bin/chflags -R nouchg /private/var/mobile/Library/UserConfigurationProfiles; then
-    log "Unlocked UserConfigurationProfiles successfully."
-else
-    log "Error: failed to unlock UserConfigurationProfiles."
-    exit 1
-fi
+log "Unlocking UserConfigurationProfiles..."
+/usr/bin/chflags -R nouchg /private/var/mobile/Library/UserConfigurationProfiles
+log "chflags nouchg exited with code $?"
 
-if [ -f "$EFFECTIVE_PLIST" ]; then
-    if /usr/libexec/PlistBuddy -c \
-        "Set :restrictedBool:allowUSBRestrictedMode:value false" \
-        "$EFFECTIVE_PLIST"; then
-        log "Patched EffectiveUserSettings.plist successfully."
-    else
-        log "Error: failed to patch EffectiveUserSettings.plist."
-        exit 1
-    fi
-else
-    log "Warning: EffectiveUserSettings.plist not found, skipping."
-fi
+# Patch USB restriction
+log "Patching EffectiveUserSettings.plist..."
+/usr/bin/plutil -key restrictedBool -key allowUSBRestrictedMode -dict -key value -0 /private/var/mobile/Library/UserConfigurationProfiles/EffectiveUserSettings.plist
+log "plutil EffectiveUserSettings exited with code $?"
 
-if [ -f "$PUBLIC_PLIST" ]; then
-    if /usr/libexec/PlistBuddy -c \
-        "Set :restrictedBool:allowUSBRestrictedMode:value false" \
-        "$PUBLIC_PLIST"; then
-        log "Patched PublicEffectiveUserSettings.plist successfully."
-    else
-        log "Error: failed to patch PublicEffectiveUserSettings.plist."
-        exit 1
-    fi
-else
-    log "Warning: PublicEffectiveUserSettings.plist not found, skipping."
-fi
+log "Patching PublicEffectiveUserSettings.plist..."
+/usr/bin/plutil -key restrictedBool -key allowUSBRestrictedMode -dict -key value -0 /private/var/mobile/Library/UserConfigurationProfiles/PublicInfo/PublicEffectiveUserSettings.plist
+log "plutil PublicEffectiveUserSettings exited with code $?"
 
-if /usr/bin/chflags -R uchg /private/var/mobile/Library/UserConfigurationProfiles; then
-    log "Re-locked UserConfigurationProfiles successfully."
-else
-    log "Error: failed to re-lock UserConfigurationProfiles."
-    exit 1
-fi
+# Lock files to prevent modification of USB restriction settings
+log "Re-locking UserConfigurationProfiles..."
+/usr/bin/chflags -R uchg /private/var/mobile/Library/UserConfigurationProfiles
+log "chflags uchg exited with code $?"
 
-log "usbpatchd finished successfully."
+log "usbpatchd finished."
