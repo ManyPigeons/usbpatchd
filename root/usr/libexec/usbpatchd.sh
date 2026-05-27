@@ -19,7 +19,7 @@
 # usbpatchd
 #
 
-LOG_FILE="/private/var/mobile/Documents/usbpatchd.log"
+LOG_FILE="/tmp/usbpatchd.log"
 
 function log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
